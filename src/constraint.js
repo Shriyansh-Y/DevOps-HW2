@@ -251,7 +251,45 @@ function constraints(filePath) {
                         }
                     }
                 }
+                // Handle fs.readFileSync
+                else if( child.type === "CallExpression" && child.callee.property && child.callee.property.name == "existsSync" ) {
 
+                    // Get expression from original source code:
+                    let expression = buf.substring(child.range[0], child.range[1]);
+
+                    for (let p in params) {
+                        if( child.arguments[0].name === params[p] ) {
+
+                            // Get identifier
+                            let ident = params[p];
+
+                            functionConstraints[funcName].constraints[ident].push(new Constraint({
+                                ident: params[p],
+                                value:  "'emptyDir'",
+                                funcName: funcName,
+                                kind: "pathExists",
+                                operator : child.operator,
+                                expression: expression
+                            }));
+                            functionConstraints[funcName].constraints[ident].push(new Constraint({
+                                ident: params[p],
+                                value:  "'nonEmptyDir'",
+                                funcName: funcName,
+                                kind: "pathExists",
+                                operator : child.operator,
+                                expression: expression
+                            }));
+                            functionConstraints[funcName].constraints[ident].push(new Constraint({
+                                ident: params[p],
+                                value:  "'file'",
+                                funcName: funcName,
+                                kind: "pathExists",
+                                operator : child.operator,
+                                expression: expression
+                            }));
+                        }
+                    }
+                }
             });
 
             // console.log( functionConstraints[funcName]);
